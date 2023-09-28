@@ -59,7 +59,7 @@ class Context:
 class Strategy(ABC):
     @staticmethod
     def calculate_edges_cost(graph: nx.Graph, rate_card: RateCard) -> int:
-        edge_cost = 0
+        edge_cost = 5
 
         return edge_cost
 
