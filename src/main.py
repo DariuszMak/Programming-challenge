@@ -6,7 +6,9 @@ from pathlib import Path
 
 from src.context import Context
 from src.graph import parse_dot_file
-from src.strategy import Strategy, StrategyCardA, StrategyCardB
+from src.strategies.strategy import Strategy
+from src.strategies.strategy_a import StrategyCardA
+from src.strategies.strategy_b import StrategyCardB
 
 if __name__ == "__main__":
     input_file = Path("src", "reference", "problem.dot")

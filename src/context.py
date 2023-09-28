@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import networkx as nx
 
-from src.strategy import Strategy
+from src.strategies.strategy import Strategy
 
 
 class Context:
