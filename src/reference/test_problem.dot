@@ -1,0 +1,7 @@
+strict graph "" {
+A [type=Cabinet];
+B [type=Pot];
+F [type=Chamber];
+A -- F  [length=0, material=verge];
+B -- F  [length=10, material=verge];
+}
