@@ -8,6 +8,7 @@ import pytest
 
 from main import Context, DotFileParams, RateCard, RateCardParams, StrategyCardA, StrategyCardB, parse_dot_file
 
+
 @pytest.fixture
 def sample_graph() -> nx.Graph:
     # Create a sample graph for testing
@@ -19,6 +20,7 @@ def sample_graph() -> nx.Graph:
     G.add_edge("B", "F", length=10, material=DotFileParams.VERGE)
     return G
 
+
 @pytest.fixture
 def shortened_dot_file_contents() -> str:
     return """strict graph "" {
@@ -29,6 +31,7 @@ def shortened_dot_file_contents() -> str:
         B -- F  [length=10, material=verge];
     }
     """
+
 
 @pytest.fixture
 def dot_file_contents() -> str:
@@ -53,6 +56,7 @@ def dot_file_contents() -> str:
     }
     """
 
+
 def test_calculate_edges_cost_strategy_A_B(sample_graph: nx.Graph) -> None:
     rate_card = RateCard(Cabinet=1000, Trench_m_verge=50, Trench_m_road=100, Chamber=200, Pot=100)
     strategyA = StrategyCardA()
@@ -63,7 +67,7 @@ def test_calculate_edges_cost_strategy_A_B(sample_graph: nx.Graph) -> None:
 
     edge_costB = strategyB.calculate_edges_cost(sample_graph, rate_card)
 
-    assert edge_costA == 5
+    assert edge_costA == 500
     assert edge_costA == edge_costB
 
 
@@ -73,7 +77,7 @@ def test_calculate_total_cost_strategy_A(sample_graph: nx.Graph) -> None:
 
     total_cost = context.execute_computation(sample_graph)
 
-    assert total_cost == 5
+    assert total_cost == 1800
 
 
 def test_calculate_total_cost_strategy_B(sample_graph: nx.Graph) -> None:
@@ -82,20 +86,27 @@ def test_calculate_total_cost_strategy_B(sample_graph: nx.Graph) -> None:
 
     total_cost = context.execute_computation(sample_graph)
 
-    assert total_cost == 5
+    assert total_cost == 2000
 
 
-def test_calculate_entire_problem(tmp_path: Path, dot_file_contents: str) -> None:
+def test_calculate_ref_problem_strategy_A(tmp_path: Path, dot_file_contents: str) -> None:
     dot_file = tmp_path / "test_dot_file.dot"
     dot_file.write_text(dot_file_contents)
 
     G = parse_dot_file(dot_file)
 
     context = Context(StrategyCardA())
-    assert context.execute_computation(G) == 5
+    assert context.execute_computation(G) == 42200
 
-    context.strategy = StrategyCardB()
-    assert context.execute_computation(G) == 5
+
+def test_calculate_ref_problem_strategy_B(tmp_path: Path, dot_file_contents: str) -> None:
+    dot_file = tmp_path / "test_dot_file.dot"
+    dot_file.write_text(dot_file_contents)
+
+    G = parse_dot_file(dot_file)
+
+    context = Context(StrategyCardB())
+    assert context.execute_computation(G) == 52400
 
 
 def test_parse_dot_file_short_example(tmp_path: Path, shortened_dot_file_contents: str) -> None:

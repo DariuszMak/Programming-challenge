@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import os
+import re
 import sys
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional, Union
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -59,8 +60,17 @@ class Context:
 class Strategy(ABC):
     @staticmethod
     def calculate_edges_cost(graph: nx.Graph, rate_card: RateCard) -> int:
-        edge_cost = 5
-
+        edge_cost = 0
+        for source, target, data in graph.edges(data=True):
+            length = data[DotFileParams.LENGTH]
+            material = data[DotFileParams.MATERIAL]
+            if material == DotFileParams.VERGE:
+                trench_cost = getattr(rate_card, RateCardParams.TRENCH_M_VERGE, 0)
+            elif material == DotFileParams.ROAD:
+                trench_cost = getattr(rate_card, RateCardParams.TRENCH_M_ROAD, 0)
+            else:
+                trench_cost = 0
+            edge_cost += trench_cost * length
         return edge_cost
 
     @abstractmethod
@@ -74,6 +84,11 @@ class StrategyCardA(Strategy):
     def calculate_total_cost(self, graph: nx.Graph) -> int:
         total_cost = Strategy.calculate_edges_cost(graph, StrategyCardA.rate_card)
 
+        for node, data in graph.nodes(data=True):
+            item = data.get(DotFileParams.TYPE)
+            cost = getattr(StrategyCardA.rate_card, item, 0)
+            total_cost += cost
+
         return total_cost
 
 
@@ -82,6 +97,15 @@ class StrategyCardB(Strategy):
 
     def calculate_total_cost(self, graph: nx.Graph) -> int:
         total_cost = Strategy.calculate_edges_cost(graph, StrategyCardB.rate_card)
+
+        for node, data in graph.nodes(data=True):
+            item = data.get(DotFileParams.TYPE)
+            if item == RateCardParams.POT:
+                length_to_cabinet = nx.shortest_path_length(graph, source=node, target="A", weight=DotFileParams.LENGTH)
+                cost = 20 * length_to_cabinet
+            else:
+                cost = getattr(StrategyCardB.rate_card, item, 0)
+            total_cost += cost
 
         return total_cost
 
@@ -110,7 +134,7 @@ def parse_dot_file(file_path: Path) -> nx.Graph:
 
 
 if __name__ == "__main__":
-    input_file = Path("src", "reference", "problem.dot")
+    input_file = Path("src", "reference", "test_problem.dot")
 
     try:
         graph = parse_dot_file(input_file)
