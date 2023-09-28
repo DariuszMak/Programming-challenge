@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations
 
 import os
 import sys
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
+from typing import Optional
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -26,6 +30,62 @@ class RateCardParams(str, Enum):
     POT = "Pot"
 
 
+@dataclass
+class RateCard:
+    Cabinet: int
+    Trench_m_verge: int
+    Trench_m_road: int
+    Chamber: int
+    Pot: Optional[int] = None
+
+
+class Context:
+    def __init__(self, strategy: Strategy) -> None:
+        self._strategy = strategy
+
+    @property
+    def strategy(self) -> Strategy:
+        return self._strategy
+
+    @strategy.setter
+    def strategy(self, strategy: Strategy) -> None:
+        self._strategy = strategy
+
+    def execute_computation(self, graph: nx.Graph) -> int:
+        result = self._strategy.calculate_total_cost(graph)
+        return result
+
+
+class Strategy(ABC):
+    @staticmethod
+    def calculate_edges_cost(graph: nx.Graph, rate_card: RateCard) -> int:
+        edge_cost = 0
+
+        return edge_cost
+
+    @abstractmethod
+    def calculate_total_cost(self, graph: nx.Graph) -> int:
+        pass
+
+
+class StrategyCardA(Strategy):
+    rate_card = RateCard(Cabinet=1000, Trench_m_verge=50, Trench_m_road=100, Chamber=200, Pot=100)
+
+    def calculate_total_cost(self, graph: nx.Graph) -> int:
+        total_cost = Strategy.calculate_edges_cost(graph, StrategyCardA.rate_card)
+
+        return total_cost
+
+
+class StrategyCardB(Strategy):
+    rate_card = RateCard(Cabinet=1200, Trench_m_verge=40, Trench_m_road=80, Chamber=200)
+
+    def calculate_total_cost(self, graph: nx.Graph) -> int:
+        total_cost = Strategy.calculate_edges_cost(graph, StrategyCardB.rate_card)
+
+        return total_cost
+
+
 def parse_dot_file(file_path: Path) -> nx.Graph:
     G = nx.Graph()
 
@@ -46,18 +106,20 @@ def parse_dot_file(file_path: Path) -> nx.Graph:
             edge_attributes[DotFileParams.LENGTH] = int(edge_attributes[DotFileParams.LENGTH])
             G.add_edge(source, target, **edge_attributes)
 
-    # nx.draw(G)
-    # plt.show()
-
     return G
 
 
 if __name__ == "__main__":
-    input_file = os.path.join("src", "reference", "problem.dot")
+    input_file = Path("src", "reference", "problem.dot")
 
     try:
         graph = parse_dot_file(input_file)
 
+        context = Context(StrategyCardA())
+        print(f"Cost using Rate Card A: £{context.execute_computation(graph)}")
+
+        context.strategy = StrategyCardB()
+        print(f"Cost using Rate Card B: £{context.execute_computation(graph)}")
     except FileNotFoundError:
         print("File not found.")
         sys.exit(1)
