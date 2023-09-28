@@ -8,6 +8,16 @@ import pytest
 
 from main import DotFileParams, RateCardParams, parse_dot_file
 
+@pytest.fixture
+def shortened_dot_file_contents() -> str:
+    return """strict graph "" {
+        A [type=Cabinet];
+        B [type=Pot];
+        F [type=Chamber];
+        A -- F  [length=0, material=verge];
+        B -- F  [length=10, material=verge];
+    }
+    """
 
 @pytest.fixture
 def dot_file_contents() -> str:
@@ -31,6 +41,26 @@ def dot_file_contents() -> str:
     H -- G  [length=100, material=road];
     }
     """
+
+
+def test_parse_dot_file_short_example(tmp_path: Path, shortened_dot_file_contents: str) -> None:
+    dot_file = tmp_path / "test_dot_file.dot"
+    dot_file.write_text(shortened_dot_file_contents)
+
+    G = parse_dot_file(dot_file)
+
+    assert len(G.nodes()) == 3
+    assert G.nodes["A"]["type"] == RateCardParams.CABINET
+    assert G.nodes["B"]["type"] == RateCardParams.POT
+    assert G.nodes["F"]["type"] == RateCardParams.CHAMBER
+
+    assert len(G.edges()) == 2
+
+    assert G.edges[("A", "F")]["length"] == 0
+    assert G.edges[("A", "F")]["material"] == DotFileParams.VERGE
+
+    assert G.edges[("B", "F")]["length"] == 10
+    assert G.edges[("B", "F")]["material"] == DotFileParams.VERGE
 
 
 def test_parse_dot_file(tmp_path: Path, dot_file_contents: str) -> None:
