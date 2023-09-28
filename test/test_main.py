@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
-import os
 from pathlib import Path
-from typing import List, Tuple
 
 import networkx as nx
 import pytest
 
-from src.main import Context, DotFileParams, RateCard, RateCardParams, StrategyCardA, StrategyCardB, parse_dot_file
+from src.dataclass import RateCard
+from src.enums import DotFileParams, RateCardParams
+from src.main import Context, parse_dot_file
+from src.strategy import StrategyCardA, StrategyCardB
 
 
 @pytest.fixture
