@@ -6,7 +6,7 @@ from typing import List, Tuple
 import networkx as nx
 import pytest
 
-from main import Context, DotFileParams, RateCard, RateCardParams, StrategyCardA, StrategyCardB, parse_dot_file
+from src.main import Context, DotFileParams, RateCard, RateCardParams, StrategyCardA, StrategyCardB, parse_dot_file
 
 
 @pytest.fixture
@@ -69,6 +69,28 @@ def test_calculate_edges_cost_strategy_A_B(sample_graph: nx.Graph) -> None:
 
     assert edge_costA == 500
     assert edge_costA == edge_costB
+
+
+def test_shortest_path_length_to_nearest_cabinet() -> None:
+    graph = nx.Graph()
+    graph.add_node("A", type=RateCardParams.CABINET)
+    graph.add_node("B", type=RateCardParams.POT)
+    graph.add_node("C", type=RateCardParams.CABINET)
+    graph.add_node("D", type=RateCardParams.POT)
+    graph.add_edge("A", "B", LENGTH=3)
+    graph.add_edge("B", "C", LENGTH=2)
+    graph.add_edge("C", "D", LENGTH=1)
+
+    strategyB = StrategyCardB()
+
+    shortest_path_length = strategyB.shortest_path_length_to_nearest_cabinet(graph, "A")
+    assert shortest_path_length == 0
+
+    shortest_path_length = strategyB.shortest_path_length_to_nearest_cabinet(graph, "B")
+    assert shortest_path_length == 1
+
+    shortest_path_length = strategyB.shortest_path_length_to_nearest_cabinet(graph, "D")
+    assert shortest_path_length == 1
 
 
 def test_calculate_total_cost_strategy_A(sample_graph: nx.Graph) -> None:
